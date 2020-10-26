@@ -28,7 +28,7 @@ def process_options(argv):
 		exit_with_help(argv)
 
 	# default method is stratified selection
-	method = 0  
+	method = 0
 	subset_file = sys.stdout
 	rest_file = None
 
@@ -37,12 +37,12 @@ def process_options(argv):
 		if argv[i][0] != "-":
 			break
 		if argv[i] == "-s":
-			i = i + 1
+			i += 1
 			method = int(argv[i])
 			if method not in [0,1]:
 				print("Unknown selection method {0}".format(method))
 				exit_with_help(argv)
-		i = i + 1
+		i += 1
 
 	dataset = argv[i]
 	subset_size = int(argv[i+1])

@@ -17,7 +17,6 @@ class FeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_run_float_motion_fextractor(self):
         ref_path, dis_path, asset, asset_original = set_default_576_324_videos_for_testing()

@@ -11,15 +11,14 @@ class H5pyMixin(object):
     """
     @staticmethod
     def open_h5py_file(h5py_filepath, mode='w'):
-        f = h5py.File(h5py_filepath, mode)
-        return f
+        return h5py.File(h5py_filepath, mode)
 
     @staticmethod
     def close_h5py_file(f, mode='w'):
-        if mode == 'w':
-            f.flush()
+        if mode == 'r':
             f.close()
-        elif mode == 'r':
+        elif mode == 'w':
+            f.flush()
             f.close()
         else:
             assert False

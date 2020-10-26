@@ -686,8 +686,7 @@ class RmsePerfMetric(AggrScorePerfMetric):
     @classmethod
     def _evaluate(cls, groundtruths, predictions, **kwargs):
         rmse = np.sqrt(np.mean(np.power(np.array(groundtruths) - np.array(predictions), 2.0)))
-        result = {'score': rmse}
-        return result
+        return {'score': rmse}
 
 
 class SrccPerfMetric(AggrScorePerfMetric):
@@ -699,8 +698,7 @@ class SrccPerfMetric(AggrScorePerfMetric):
     def _evaluate(cls, groundtruths, predictions, **kwargs):
         # spearman
         srcc, _ = scipy.stats.spearmanr(groundtruths, predictions)
-        result = {'score': srcc}
-        return result
+        return {'score': srcc}
 
 
 class PccPerfMetric(AggrScorePerfMetric):
@@ -712,8 +710,7 @@ class PccPerfMetric(AggrScorePerfMetric):
     def _evaluate(cls, groundtruths, predictions, **kwargs):
         # pearson
         pcc, _ = scipy.stats.pearsonr(groundtruths, predictions)
-        result = {'score': pcc}
-        return result
+        return {'score': pcc}
 
 
 class KendallPerfMetric(AggrScorePerfMetric):
@@ -725,5 +722,4 @@ class KendallPerfMetric(AggrScorePerfMetric):
     def _evaluate(cls, groundtruths, predictions, **kwargs):
         # kendall
         kendall, _ = scipy.stats.kendalltau(groundtruths, predictions)
-        result = {'score': kendall}
-        return result
+        return {'score': kendall}

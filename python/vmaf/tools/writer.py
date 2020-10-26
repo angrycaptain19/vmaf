@@ -103,22 +103,21 @@ class YuvWriter(object):
         else:
             assert False
 
-        if format == 'uint':
-            pass
-        elif format == 'float2uint':
-            if self._is_8bit():
-                y = y.astype(np.double) * (2.0**8 - 1.0)
-                u = u.astype(np.double) * (2.0**8 - 1.0) if u is not None else None
-                v = v.astype(np.double) * (2.0**8 - 1.0) if v is not None else None
-            elif self._is_10bitle():
-                y = y.astype(np.double) * (2.0**10 - 1.0)
-                u = u.astype(np.double) * (2.0**10 - 1.0) if u is not None else None
-                v = v.astype(np.double) * (2.0**10 - 1.0) if v is not None else None
-            else:
-                assert False
-        else:
+        if format == 'float2uint' and self._is_8bit():
+            y = y.astype(np.double) * (2.0**8 - 1.0)
+            u = u.astype(np.double) * (2.0**8 - 1.0) if u is not None else None
+            v = v.astype(np.double) * (2.0**8 - 1.0) if v is not None else None
+        elif format == 'float2uint' and not self._is_8bit() and self._is_10bitle():
+            y = y.astype(np.double) * (2.0**10 - 1.0)
+            u = u.astype(np.double) * (2.0**10 - 1.0) if u is not None else None
+            v = v.astype(np.double) * (2.0**10 - 1.0) if v is not None else None
+        elif (
+            format == 'float2uint'
+            and not self._is_8bit()
+            and not self._is_10bitle()
+            or format != 'uint'
+        ):
             assert False
-
         self.file.write(y.astype(pix_type).tobytes())
         if u is not None:
             self.file.write(u.astype(pix_type).tobytes())

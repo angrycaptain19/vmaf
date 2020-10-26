@@ -16,7 +16,6 @@ class ParallelFeatureExtractorTestNew(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_run_vmaf_fextractor_with_gaussian_blurring(self):
 
@@ -66,7 +65,6 @@ class NorefFeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-            pass
 
     def test_noref_moment_fextractor_with_noref_asset_notyuv_gaussianblur(self):
 
@@ -99,7 +97,6 @@ class QualityRunnerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'runner'):
             self.runner.remove_results()
-            pass
 
     def setUp(self):
         self.result_store = FileSystemResultStore()

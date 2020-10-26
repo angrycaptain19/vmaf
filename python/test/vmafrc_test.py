@@ -19,7 +19,6 @@ class VmafrcQualityRunnerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'runner'):
             self.runner.remove_results()
-            pass
 
     def setUp(self):
         self.result_store = FileSystemResultStore()

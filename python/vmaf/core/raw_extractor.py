@@ -93,11 +93,7 @@ class DisYUVRawVideoExtractor(H5pyMixin, RawExtractor):
 
     @override(Executor)
     def run(self, **kwargs):
-        if 'parallelize' in kwargs:
-            parallelize = kwargs['parallelize']
-        else:
-            parallelize = False
-
+        parallelize = kwargs['parallelize'] if 'parallelize' in kwargs else False
         assert parallelize is False, "DisYUVRawVideoExtractor cannot parallelize."
 
         super(DisYUVRawVideoExtractor, self).run(**kwargs)
@@ -115,7 +111,7 @@ class DisYUVRawVideoExtractor(H5pyMixin, RawExtractor):
     def _wait_for_workfiles(self, asset):
         # Override Executor._wait_for_workfiles to skip ref_workfile_path
         # wait til workfile paths being generated
-        for i in range(10):
+        for _ in range(10):
             if os.path.exists(asset.dis_workfile_path):
                 break
             sleep(0.1)

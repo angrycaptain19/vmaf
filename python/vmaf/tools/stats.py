@@ -71,10 +71,10 @@ class ListStats(object):
         :return:
         """
         x = np.asarray(my_list)
-        if type == 'simple':
-            weights = np.ones(n)
-        elif type == 'exponential':
+        if type == 'exponential':
             weights = np.exp(np.linspace(decay, 0., n))
+        elif type == 'simple':
+            weights = np.ones(n)
         else:
             assert False, "Unknown type: {}.".format(type)
 

@@ -106,7 +106,7 @@ class RegressorMixin(object):
             except TypeError: # ResPow would not work with dictionary-style dataset
                 stats['ResPowNormalized'] = float('nan')
 
-        if 'ys_label_stddev' in kwargs and 'ys_label_stddev' and kwargs['ys_label_stddev'] is not None:
+        if 'ys_label_stddev' in kwargs and kwargs['ys_label_stddev'] is not None:
             stats['ys_label_stddev'] = kwargs['ys_label_stddev']
 
         if split_test_indices_for_perf_ci:
@@ -317,12 +317,11 @@ class ClassifierMixin(object):
         f1 = f1_score(ys_label_pred, ys_label)
         # error rate
         errorrate = np.mean(np.array(ys_label) != np.array(ys_label_pred))
-        stats = {'RMSE': rmse,
+        return {'RMSE': rmse,
                  'f1': f1,
                  'errorrate': errorrate,
                  'ys_label': list(ys_label),
                  'ys_label_pred': list(ys_label_pred)}
-        return stats
 
     @staticmethod
     def format_stats(stats):
@@ -409,7 +408,7 @@ class TrainTestModel(TypeVersionEnabled):
         assert 'model' in self.model_dict
 
         norm_type = self.model_dict['norm_type']
-        assert norm_type == 'none' or norm_type == 'linear_rescale'
+        assert norm_type in ['none', 'linear_rescale']
 
         if norm_type == 'linear_rescale':
             assert 'slopes' in self.model_dict
@@ -633,9 +632,7 @@ class TrainTestModel(TypeVersionEnabled):
     def _normalize_xys(self, xys_2d):
         if self.norm_type == 'linear_rescale':
             xys_2d = self.slopes * xys_2d + self.intercepts
-        elif self.norm_type == 'none':
-            pass
-        else:
+        elif self.norm_type != 'none':
             assert False, 'Incorrect model norm type selected: {}' \
                 .format(self.norm_type)
         return xys_2d
@@ -643,9 +640,7 @@ class TrainTestModel(TypeVersionEnabled):
     def denormalize_ys(self, ys_vec):
         if self.norm_type == 'linear_rescale':
             ys_vec = (ys_vec - self.intercepts[0]) / self.slopes[0]
-        elif self.norm_type == 'none':
-            pass
-        else:
+        elif self.norm_type != 'none':
             assert False, 'Incorrect model norm type selected: {}' \
                 .format(self.norm_type)
         return ys_vec
@@ -653,9 +648,7 @@ class TrainTestModel(TypeVersionEnabled):
     def normalize_xs(self, xs_2d):
         if self.norm_type == 'linear_rescale':
             xs_2d = self.slopes[1:] * xs_2d + self.intercepts[1:]
-        elif self.norm_type == 'none':
-            pass
-        else:
+        elif self.norm_type != 'none':
             assert False, 'Incorrect model norm type selected: {}' \
                 .format(self.norm_type)
         return xs_2d
@@ -687,22 +680,18 @@ class TrainTestModel(TypeVersionEnabled):
 
         # combine them
         ys_vec = xys['label']
-        xys_2d = np.array(np.hstack((np.array([ys_vec]).T, xs_2d)))
-        return xys_2d
+        return np.array(np.hstack((np.array([ys_vec]).T, xs_2d)))
 
     @classmethod
     def _to_tabular_xs(cls, xkeys, xs):
-        xs_2d = []
-        for name in xkeys:
-            xs_2d.append(np.array(xs[name]))
+        xs_2d = [np.array(xs[name]) for name in xkeys]
         xs_2d = np.vstack(xs_2d).T
         return xs_2d
 
     def evaluate(self, xs, ys):
         ys_label_pred = self.predict(xs)['ys_label_pred']
         ys_label = ys['label']
-        stats = self.get_stats(ys_label, ys_label_pred)
-        return stats
+        return self.get_stats(ys_label, ys_label_pred)
 
     @classmethod
     def delete(cls, filename):
@@ -762,10 +751,10 @@ class TrainTestModel(TypeVersionEnabled):
         # to ensure compatibility
         feature_names = result.get_ordered_list_scores_key()
         new_feature_names = result.get_ordered_list_score_key()
-        xs = {}
-        for name, new_name in zip(feature_names, new_feature_names):
-            xs[new_name] = np.array(result[name])
-        return xs
+        return {
+            new_name: np.array(result[name])
+            for name, new_name in zip(feature_names, new_feature_names)
+        }
 
     @classmethod
     def get_ys_from_results(cls, results, indexs=None):
@@ -825,12 +814,12 @@ class LibsvmNusvrTrainTestModel(TrainTestModel, RegressorMixin):
         except NameError:
             from vmaf import svmutil
 
-        if kernel == 'rbf':
-            ktype_int = svmutil.RBF
-        elif kernel == 'linear':
+        if kernel == 'linear':
             ktype_int = svmutil.LINEAR
         elif kernel == 'poly':
             ktype_int = svmutil.POLY
+        elif kernel == 'rbf':
+            ktype_int = svmutil.RBF
         elif kernel == 'sigmoid':
             ktype_int = svmutil.SIGMOID
         else:
@@ -849,9 +838,7 @@ class LibsvmNusvrTrainTestModel(TrainTestModel, RegressorMixin):
         for i, item in enumerate(f):
             f[i] = list(item)
         prob = svmutil.svm_problem(xys_2d[:, 0], f)
-        model = svmutil.svm_train(prob, param)
-
-        return model
+        return svmutil.svm_train(prob, param)
 
     @classmethod
     @override(TrainTestModel)
@@ -866,8 +853,7 @@ class LibsvmNusvrTrainTestModel(TrainTestModel, RegressorMixin):
         for i, item in enumerate(f):
             f[i] = list(item)
         score, _, _ = svmutil.svm_predict([0] * len(f), f, model)
-        ys_label_pred = np.array(score)
-        return ys_label_pred
+        return np.array(score)
 
     @staticmethod
     @override(TrainTestModel)
@@ -934,7 +920,7 @@ class LibsvmNusvrTrainTestModel(TrainTestModel, RegressorMixin):
         assert 'feature_names' in additional_model_dict
         assert 'norm_type' in additional_model_dict
         norm_type = additional_model_dict['norm_type']
-        assert norm_type == 'none' or norm_type == 'linear_rescale'
+        assert norm_type in ['none', 'linear_rescale']
         if norm_type == 'linear_rescale':
             assert 'slopes' in additional_model_dict
             assert 'intercepts' in additional_model_dict
@@ -1116,9 +1102,7 @@ class MomentRandomForestTrainTestModel(RawVideoTrainTestModelMixin,
 
         # combine with ys
         ys_vec = xys['label']
-        xys_2d = np.array(np.hstack((np.array([ys_vec]).T, xs_2d)))
-
-        return xys_2d
+        return np.array(np.hstack((np.array([ys_vec]).T, xs_2d)))
 
     @classmethod
     @override(TrainTestModel)
@@ -1144,9 +1128,7 @@ class MomentRandomForestTrainTestModel(RawVideoTrainTestModelMixin,
                 video_stats_list.append(video_stats)
             video_stats_2d = np.vstack(video_stats_list)
             xs_list.append(video_stats_2d)
-        xs_2d = np.hstack(xs_list)
-
-        return xs_2d
+        return np.hstack(xs_list)
 
 
 class BootstrapRegressorMixin(RegressorMixin):
@@ -1282,9 +1264,8 @@ class BootstrapMixin(object):
 
     @classmethod
     def _get_num_models_from_param_dict(cls, param_dict):
-        num_models = param_dict[
+        return param_dict[
             'num_models'] if 'num_models' in param_dict else cls.DEFAULT_NUM_MODELS
-        return num_models
 
     @override(TrainTestModel)
     def predict(self, xs):
@@ -1332,8 +1313,7 @@ class BootstrapMixin(object):
     def evaluate_bagging(self, xs, ys):
         ys_label_pred_bagging = self.predict(xs)['ys_label_pred_bagging']
         ys_label = ys['label']
-        stats = self.get_stats(ys_label, ys_label_pred_bagging)
-        return stats
+        return self.get_stats(ys_label, ys_label_pred_bagging)
 
     @override(TrainTestModel)
     def to_file(self, filename):

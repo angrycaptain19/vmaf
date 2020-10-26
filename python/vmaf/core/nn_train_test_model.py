@@ -151,10 +151,7 @@ class NeuralNetTrainTestModel(RawVideoTrainTestModelMixin,
             sys.stdout.flush()
 
             # create single x
-            x = {}
-            for feature_name in feature_names:
-                x[feature_name] = [xs[feature_name][i]]
-
+            x = {feature_name: [xs[feature_name][i]] for feature_name in feature_names}
             # extract patches
             patches_cache = self._populate_patches(feature_names, x)
 
@@ -439,13 +436,11 @@ class ToddNoiseClassifierTrainTestModel(NeuralNetTrainTestModel, ClassifierMixin
 
             print("")
 
-        model = {
+        return {
             'sess': sess,
             'y_p': y_p,
             'input_image_batch': input_image_batch,
         }
-
-        return model
 
     def _evaluate_on_patches(self, patches_in, labels_in, input_image_batch,
                              loss_in, sess, indices, y_, y_p, type_="train"):

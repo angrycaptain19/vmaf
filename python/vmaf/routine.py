@@ -76,11 +76,7 @@ def read_dataset(dataset, **kwargs):
             else:
                 groundtruth = None
 
-        if 'os' in dis_video:
-            raw_groundtruth = dis_video['os']
-        else:
-            raw_groundtruth = None
-
+        raw_groundtruth = dis_video['os'] if 'os' in dis_video else None
         if 'groundtruth_std' in dis_video:
             groundtruth_std = dis_video['groundtruth_std']
         else:
@@ -104,7 +100,7 @@ def read_dataset(dataset, **kwargs):
             width_ = ref_video['width']
         elif 'width' in dis_video and 'width' not in ref_video:
             width_ = dis_video['width']
-        elif 'width' in ref_video and 'width' in dis_video:
+        elif 'width' in ref_video:
             assert ref_video['width'] == dis_video['width']
             width_ = ref_video['width']
         else:
@@ -116,7 +112,7 @@ def read_dataset(dataset, **kwargs):
             height_ = ref_video['height']
         elif 'height' in dis_video and 'height' not in ref_video:
             height_ = dis_video['height']
-        elif 'height' in ref_video and 'height' in dis_video:
+        elif 'height' in ref_video:
             assert ref_video['height'] == dis_video['height']
             height_ = ref_video['height']
         else:
@@ -147,28 +143,14 @@ def read_dataset(dataset, **kwargs):
             ref_crop_cmd_ = crop_cmd
             dis_crop_cmd_ = crop_cmd
         else:
-            if 'crop_cmd' in ref_video:
-                ref_crop_cmd_ = ref_video['crop_cmd']
-            else:
-                ref_crop_cmd_ = None
-            if 'crop_cmd' in dis_video:
-                dis_crop_cmd_ = dis_video['crop_cmd']
-            else:
-                dis_crop_cmd_ = None
-
+            ref_crop_cmd_ = ref_video['crop_cmd'] if 'crop_cmd' in ref_video else None
+            dis_crop_cmd_ = dis_video['crop_cmd'] if 'crop_cmd' in dis_video else None
         if pad_cmd is not None:
             ref_pad_cmd_ = pad_cmd
             dis_pad_cmd_ = pad_cmd
         else:
-            if 'pad_cmd' in ref_video:
-                ref_pad_cmd_ = ref_video['pad_cmd']
-            else:
-                ref_pad_cmd_ = None
-            if 'pad_cmd' in dis_video:
-                dis_pad_cmd_ = dis_video['pad_cmd']
-            else:
-                dis_pad_cmd_ = None
-
+            ref_pad_cmd_ = ref_video['pad_cmd'] if 'pad_cmd' in ref_video else None
+            dis_pad_cmd_ = dis_video['pad_cmd'] if 'pad_cmd' in dis_video else None
         if duration_sec is not None:
             duration_sec_ = duration_sec
         elif 'duration_sec' in dis_video:
@@ -244,9 +226,7 @@ def read_dataset(dataset, **kwargs):
         if end_frame_ is not None:
             asset_dict['end_frame'] = end_frame_
 
-        if groundtruth is None and skip_asset_with_none_groundtruth:
-            pass
-        else:
+        if groundtruth is not None or not skip_asset_with_none_groundtruth:
             asset = Asset(dataset=data_set_name,
                           content_id=dis_video['content_id'],
                           asset_id=dis_video['asset_id'],

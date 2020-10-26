@@ -128,11 +128,10 @@ class VmafrcFeatureExtractorMixin(object):
             assert len(feature_scores[i_feature]) != 0
             assert len(feature_scores[i_feature]) == len(feature_scores[0])
 
-        feature_result = {}
-        for i_feature, feature in enumerate(self.ATOM_FEATURES):
-            feature_result[self.get_scores_key(feature)] = feature_scores[i_feature]
-
-        return feature_result
+        return {
+            self.get_scores_key(feature): feature_scores[i_feature]
+            for i_feature, feature in enumerate(self.ATOM_FEATURES)
+        }
 
 
 class VmafFeatureExtractor(VmafrcFeatureExtractorMixin, FeatureExtractor):
@@ -433,7 +432,7 @@ class PypsnrFeatureExtractor(FeatureExtractor):
     def _generate_result(self, asset):
         quality_w, quality_h = asset.quality_width_height
         yuv_type = self._get_workfile_yuv_type(asset)
-        log_dicts = list()
+        log_dicts = []
         with YuvReader(filepath=asset.ref_procfile_path, width=quality_w, height=quality_h,
                        yuv_type=yuv_type) as ref_yuv_reader:
             with YuvReader(filepath=asset.dis_procfile_path, width=quality_w, height=quality_h,
@@ -480,15 +479,12 @@ class PypsnrFeatureExtractor(FeatureExtractor):
             log_str = log_file.read()
             log_dicts = ast.literal_eval(log_str)
 
-        feature_result = dict()
-        frm = 0
-        for log_dict in log_dicts:
+        feature_result = {}
+        for frm, log_dict in enumerate(log_dicts):
             assert frm == log_dict['frame']
             feature_result.setdefault(self.get_scores_key('psnry'), []).append(log_dict['psnry'])
             feature_result.setdefault(self.get_scores_key('psnru'), []).append(log_dict['psnru'])
             feature_result.setdefault(self.get_scores_key('psnrv'), []).append(log_dict['psnrv'])
-            frm += 1
-
         return feature_result
 
 
@@ -540,30 +536,26 @@ class MomentFeatureExtractor(FeatureExtractor):
 
         ref_scores_mtx = None
         with YuvReader(filepath=asset.ref_procfile_path, width=quality_w, height=quality_h,
-                       yuv_type=self._get_workfile_yuv_type(asset)) as ref_yuv_reader:
+                           yuv_type=self._get_workfile_yuv_type(asset)) as ref_yuv_reader:
             scores_mtx_list = []
-            i = 0
-            for ref_yuv in ref_yuv_reader:
+            for i, ref_yuv in enumerate(ref_yuv_reader):
                 ref_y = ref_yuv[0]
                 ref_y = ref_y.astype(np.double)
                 firstm = ref_y.mean()
                 secondm = ref_y.var() + firstm**2
                 scores_mtx_list.append(np.hstack(([firstm], [secondm])))
-                i += 1
             ref_scores_mtx = np.vstack(scores_mtx_list)
 
         dis_scores_mtx = None
         with YuvReader(filepath=asset.dis_procfile_path, width=quality_w, height=quality_h,
-                       yuv_type=self._get_workfile_yuv_type(asset)) as dis_yuv_reader:
+                           yuv_type=self._get_workfile_yuv_type(asset)) as dis_yuv_reader:
             scores_mtx_list = []
-            i = 0
-            for dis_yuv in dis_yuv_reader:
+            for i, dis_yuv in enumerate(dis_yuv_reader):
                 dis_y = dis_yuv[0]
                 dis_y = dis_y.astype(np.double)
                 firstm = dis_y.mean()
                 secondm = dis_y.var() + firstm**2
                 scores_mtx_list.append(np.hstack(([firstm], [secondm])))
-                i += 1
             dis_scores_mtx = np.vstack(scores_mtx_list)
 
         assert ref_scores_mtx is not None and dis_scores_mtx is not None
@@ -592,8 +584,7 @@ class MomentFeatureExtractor(FeatureExtractor):
         _, num_dis_features = dis_scores_mtx.shape
         assert num_dis_features == 2 # dis1st, dis2nd
 
-        feature_result = {}
-        feature_result[self.get_scores_key('ref1st')] = list(ref_scores_mtx[:, 0])
+        feature_result = {self.get_scores_key('ref1st'): list(ref_scores_mtx[:, 0])}
         feature_result[self.get_scores_key('ref2nd')] = list(ref_scores_mtx[:, 1])
         feature_result[self.get_scores_key('dis1st')] = list(dis_scores_mtx[:, 0])
         feature_result[self.get_scores_key('dis2nd')] = list(dis_scores_mtx[:, 1])

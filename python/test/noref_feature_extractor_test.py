@@ -19,7 +19,6 @@ class NorefFeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-            pass
 
     def test_noref_moment_fextractor(self):
 
@@ -232,7 +231,6 @@ class ParallelNorefFeatureExtractorTest(unittest.TestCase):
         if hasattr(self, 'fextractors'):
             for fextractor in self.fextractors:
                 fextractor.remove_results()
-            pass
 
     def test_run_parallel_moment_noref_fextractor(self):
 
@@ -263,7 +261,6 @@ class ParallelNorefFeatureExtractorTestNew(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-            pass
 
     def test_noref_moment_fextractor(self):
 

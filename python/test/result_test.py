@@ -226,7 +226,6 @@ class ResultStoreTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'result') and hasattr(self, 'result_store'):
             self.result_store.delete(self.result.asset, self.result.executor_id)
-        pass
 
     def test_file_system_result_store_save_load(self):
         self.result_store = FileSystemResultStore(logger=None)

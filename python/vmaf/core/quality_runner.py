@@ -107,7 +107,7 @@ class QualityRunnerFromFeatureExtractor(QualityRunner):
                 getattr(self._get_feature_extractor_class(), 'DERIVED_ATOM_FEATURES', [])
         }
 
-        feature_assembler = FeatureAssembler(
+        return FeatureAssembler(
             feature_dict=feature_dict,
             feature_option_dict=None,
             assets=[asset],
@@ -119,7 +119,6 @@ class QualityRunnerFromFeatureExtractor(QualityRunner):
             optional_dict2=None,
             parallelize=False,  # parallelization already in a higher level
         )
-        return feature_assembler
 
     @override(Executor)
     def _run_on_asset(self, asset):
@@ -182,7 +181,7 @@ class VmafLegacyQualityRunner(QualityRunner):
         raise NotImplementedError
 
     def _get_vmaf_feature_assembler_instance(self, asset):
-        vmaf_fassembler = FeatureAssembler(
+        return FeatureAssembler(
             feature_dict=self.FEATURE_ASSEMBLER_DICT,
             feature_option_dict=None,
             assets=[asset],
@@ -194,7 +193,6 @@ class VmafLegacyQualityRunner(QualityRunner):
             optional_dict2=None,
             parallelize=False,  # parallelization already in a higher level
         )
-        return vmaf_fassembler
 
     @override(Executor)
     def _run_on_asset(self, asset):
@@ -311,7 +309,7 @@ class VmafQualityRunner(QualityRunner):
         if feature_dict is None:
             feature_dict = self.DEFAULT_FEATURE_DICT
 
-        vmaf_fassembler = FeatureAssembler(
+        return FeatureAssembler(
             feature_dict=feature_dict,
             feature_option_dict=None,
             assets=[asset],
@@ -323,7 +321,6 @@ class VmafQualityRunner(QualityRunner):
             optional_dict2=None,
             parallelize=False,  # parallelization already in a higher level
         )
-        return vmaf_fassembler
 
     @override(Executor)
     def _run_on_asset(self, asset):
@@ -366,11 +363,10 @@ class VmafQualityRunner(QualityRunner):
         do_transform_score = cls._do_transform_score(kwargs)
         if do_transform_score:
             ys_pred = cls.transform_score(model, ys_pred)
-        else:
-            pass
-        if 'disable_clip_score' in kwargs and kwargs['disable_clip_score'] is True:
-            pass
-        else:
+        if (
+            'disable_clip_score' not in kwargs
+            or kwargs['disable_clip_score'] is not True
+        ):
             ys_pred = cls.clip_score(model, ys_pred)
         return {'ys_pred': ys_pred}
 
@@ -563,10 +559,10 @@ class EnsembleVmafQualityRunner(VmafQualityRunner):
         return Result(asset, self.executor_id, result_dict)
 
     def ensemblevmaf_get_scores_key(self, Nmodels):
-        scores_name_list = []
-        for model_ind in range(Nmodels):
-            scores_name_list.append(self.TYPE + '_model_' + str(model_ind) + '_scores')
-        return scores_name_list
+        return [
+            self.TYPE + '_model_' + str(model_ind) + '_scores'
+            for model_ind in range(Nmodels)
+        ]
 
     def _load_model(self, asset):
         if self.optional_dict is not None \
@@ -576,10 +572,10 @@ class EnsembleVmafQualityRunner(VmafQualityRunner):
         else:
             model_filepath = self.DEFAULT_MODEL_FILEPATH
 
-        model = []
-        for model_filepath_part in model_filepath:
-            model.append(TrainTestModel.from_file(model_filepath_part, self.logger))
-        return model
+        return [
+            TrainTestModel.from_file(model_filepath_part, self.logger)
+            for model_filepath_part in model_filepath
+        ]
 
     @override(Executor)
     def _remove_result(self, asset):
@@ -802,7 +798,7 @@ class VmafSingleFeatureQualityRunner(QualityRunner):
         raise NotImplementedError
 
     def _get_vmaf_feature_assembler_instance(self, asset):
-        vmaf_fassembler = FeatureAssembler(
+        return FeatureAssembler(
             feature_dict={'VMAF_feature': [self.FEATURE_NAME]},
             feature_option_dict=None,
             assets=[asset],
@@ -814,7 +810,6 @@ class VmafSingleFeatureQualityRunner(QualityRunner):
             optional_dict2=None,
             parallelize=False,  # parallelization already in a higher level
         )
-        return vmaf_fassembler
 
     @override(Executor)
     def _run_on_asset(self, asset):
@@ -922,12 +917,10 @@ class BootstrapVmafQualityRunner(VmafQualityRunner):
             ys_pred_minus = cls.transform_score(model, ys_pred_minus)
             ys_pred_ci95_low = cls.transform_score(model, ys_pred_ci95_low)
             ys_pred_ci95_high = cls.transform_score(model, ys_pred_ci95_high)
-        else:
-            pass
-
-        if 'disable_clip_score' in kwargs and kwargs['disable_clip_score'] is True:
-            pass
-        else:
+        if (
+            'disable_clip_score' not in kwargs
+            or kwargs['disable_clip_score'] is not True
+        ):
             ys_pred_all_models = np.array([cls.clip_score(model, ys_pred_some_model) for ys_pred_some_model in ys_pred_all_models])
             ys_pred = cls.clip_score(model, ys_pred)
             ys_pred_bagging = cls.clip_score(model, ys_pred_bagging)
@@ -1036,7 +1029,7 @@ class NiqeQualityRunner(QualityRunner):
 
         feature_optional_dict = model.get_appended_info('feature_optional_dict')
 
-        vmaf_fassembler = FeatureAssembler(
+        return FeatureAssembler(
             feature_dict=feature_dict,
             feature_option_dict=None,
             assets=[asset],
@@ -1049,8 +1042,6 @@ class NiqeQualityRunner(QualityRunner):
             parallelize=False,
         )
 
-        return vmaf_fassembler
-
     def _load_model(self, asset):
         if self.optional_dict is not None \
                 and 'model_filepath' in self.optional_dict \
@@ -1058,8 +1049,7 @@ class NiqeQualityRunner(QualityRunner):
             model_filepath = self.optional_dict['model_filepath']
         else:
             model_filepath = self.DEFAULT_MODEL_FILEPATH
-        model = TrainTestModel.from_file(model_filepath, self.logger)
-        return model
+        return TrainTestModel.from_file(model_filepath, self.logger)
 
     @override(Executor)
     def _run_on_asset(self, asset):
@@ -1128,9 +1118,7 @@ class VmafrcQualityRunner(QualityRunner):
             assert isinstance(self.optional_dict['models'], list)
             models = self.optional_dict['models']
         else:
-            model0 = []
-            model0.append(f'name=vmaf')
-
+            model0 = [f'name=vmaf']
             if self.optional_dict is not None and 'model_filepath' in self.optional_dict:
                 model_filepath = self.optional_dict['model_filepath']
             else:
@@ -1238,12 +1226,10 @@ class VmafrcQualityRunner(QualityRunner):
         # ==== translate disable_enhn_gain into vif_enhn_gain_limit and adm_enhn_gain_limit: ====
         if disable_enhn_gain is None:
             pass
-        elif disable_enhn_gain is not None and vif_enhn_gain_limit is None and adm_enhn_gain_limit is None:
+        elif vif_enhn_gain_limit is None and adm_enhn_gain_limit is None:
             if disable_enhn_gain is True:
                 vif_enhn_gain_limit = 1.0
                 adm_enhn_gain_limit = 1.0
-            else:
-                pass
         else:
             assert False
 
@@ -1278,8 +1264,6 @@ class VmafrcQualityRunner(QualityRunner):
         log_file_path = self._get_log_file_path(asset)
         tree = ElementTree.parse(log_file_path)
         root = tree.getroot()
-        scores_dict = {}
-
         feature_scores = [[] for _ in self.FEATURES]
 
         if self.optional_dict is not None and 'no_prediction' in self.optional_dict:
@@ -1295,14 +1279,15 @@ class VmafrcQualityRunner(QualityRunner):
             scores_keys = []
         elif self.optional_dict is not None and 'models' in self.optional_dict:
             assert isinstance(self.optional_dict['models'], list)
-            scores_keys = []
-            for model in self.optional_dict['models']:
-                scores_keys.append(model.split("name=")[1].split(":")[0])
+            scores_keys = [
+                model.split("name=")[1].split(":")[0]
+                for model in self.optional_dict['models']
+            ]
+
         else:
             scores_keys = ['vmaf']
 
-        for scores_key in scores_keys:
-            scores_dict[scores_key] = []
+        scores_dict = {scores_key: [] for scores_key in scores_keys}
 
         for frame in root.findall('frames/frame'):
             if not no_prediction:
@@ -1310,17 +1295,14 @@ class VmafrcQualityRunner(QualityRunner):
                     scores_dict[scores_key].append(float(frame.attrib[scores_key]))
             for i_feature, feature in enumerate(self.FEATURES):
                 try:
-                    if feature in ['motion2']:
-                        feature_scores[i_feature].append(float(frame.attrib[feature]))
-                    elif feature in ['float_psnr']:
-                        feature_scores[i_feature].append(float(frame.attrib[feature]))
-                    else:
-                        feature_scores[i_feature].append(float(frame.attrib[feature]))
+                    feature_scores[i_feature].append(float(frame.attrib[feature]))
                 except KeyError:
                     pass  # some features may be missing
         for scores_key in scores_keys:
-            assert len(scores_dict[scores_key]) != 0 \
-                   or any([len(feature_score) != 0 for feature_score in feature_scores])
+            assert len(scores_dict[scores_key]) != 0 or any(
+                len(feature_score) != 0 for feature_score in feature_scores
+            )
+
         quality_result = {}
         for scores_key in scores_keys:
             if scores_key != 'vmaf':

@@ -27,7 +27,6 @@ class LocalExplainerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'runner'):
             self.runner.remove_results()
-            pass
 
     def test_explain_train_test_model(self):
 
@@ -234,7 +233,6 @@ class QualityRunnerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'runner'):
             self.runner.remove_results()
-            pass
 
     def setUp(self):
         self.result_store = FileSystemResultStore()

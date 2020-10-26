@@ -73,10 +73,12 @@ class TypeVersionEnabled(object):
         :param subclass_type:
         :return:
         """
-        matched_subclasses = []
-        for subclass in cls.get_subclasses_recursively():
-            if hasattr(subclass, 'TYPE') and subclass.TYPE == subclass_type:
-                matched_subclasses.append(subclass)
+        matched_subclasses = [
+            subclass
+            for subclass in cls.get_subclasses_recursively()
+            if hasattr(subclass, 'TYPE') and subclass.TYPE == subclass_type
+        ]
+
         assert len(matched_subclasses) == 1, \
             "Must have one and only one subclass of {class_name} with type " \
             "{type}, but got {num}".format(

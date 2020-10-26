@@ -17,7 +17,6 @@ class FeatureAssemblerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fassembler'):
             self.fassembler.remove_results()
-        pass
 
     def test_get_fextractor_subclasses(self):
         fextractor_subclasses = FeatureExtractor.get_subclasses_recursively()

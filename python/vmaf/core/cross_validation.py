@@ -43,10 +43,8 @@ class ModelCrossValidation(object):
         model.train(xys_train)
         stats = model.evaluate(xs_test, ys_test)
 
-        output = {'stats': stats, 'model': model,
+        return {'stats': stats, 'model': model,
                   'contentids': ys_test['content_id']}
-
-        return output
 
     @classmethod
     def run_kfold_cross_validation(cls,
@@ -253,7 +251,7 @@ class ModelCrossValidation(object):
         top_model_param, count = cls._find_most_frequent_dict(model_params)
 
         assert contentids is not None
-        output__ = {
+        return {
             'aggr_stats':aggr_stats,
             'top_model_param':top_model_param,
             'top_ratio':float(count) / len(model_params),
@@ -261,8 +259,6 @@ class ModelCrossValidation(object):
             'model_params':model_params,
             'contentids':contentids,
         }
-
-        return output__
 
     @classmethod
     def _assert_grid_search(cls, model_param_search_range):
@@ -310,7 +306,7 @@ class ModelCrossValidation(object):
     def _sample_model_param_list(model_param_search_range, random_search_times):
         keys = sorted(model_param_search_range.keys()) # normalize order
         list_of_dicts = []
-        for i in range(random_search_times):
+        for _ in range(random_search_times):
             d = {}
             for k in keys:
                 v = model_param_search_range[k]

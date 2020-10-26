@@ -117,5 +117,4 @@ class NiqeTrainTestModel(TrainTestModel, RegressorMixin):
         X = sample_mu - pop_mu
         covmat = ((pop_cov+sample_cov)/2.0)
         pinvmat = scipy.linalg.pinv(covmat)
-        d1 = np.sqrt(np.dot(np.dot(X, pinvmat), X))
-        return d1
+        return np.sqrt(np.dot(np.dot(X, pinvmat), X))
