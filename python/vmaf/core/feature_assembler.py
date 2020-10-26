@@ -114,8 +114,7 @@ class FeatureAssembler(object):
 
     def _get_scores_key(self, fextractor_type, atom_feature):
         fextractor_subclass = FeatureExtractor.find_subclass(fextractor_type)
-        scores_key = fextractor_subclass.get_scores_key(atom_feature)
-        return scores_key
+        return fextractor_subclass.get_scores_key(atom_feature)
 
     def _get_atom_features(self, fextractor_type):
         if self.feature_dict[fextractor_type] == 'all':
@@ -129,7 +128,7 @@ class FeatureAssembler(object):
 
     def _get_fextractor_instance(self, fextractor_type):
         fextractor_class = FeatureExtractor.find_subclass(fextractor_type)
-        fextractor = fextractor_class(assets=self.assets,
+        return fextractor_class(assets=self.assets,
                                       logger=self.logger,
                                       fifo_mode=self.fifo_mode,
                                       delete_workdir=self.delete_workdir,
@@ -137,4 +136,3 @@ class FeatureAssembler(object):
                                       optional_dict=self.optional_dict,
                                       optional_dict2=self.optional_dict2,
                                       )
-        return fextractor

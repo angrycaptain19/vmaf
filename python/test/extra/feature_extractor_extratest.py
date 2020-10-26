@@ -20,7 +20,6 @@ class MatlabFeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_run_strred_fextractor(self):
 
@@ -129,7 +128,6 @@ class ParallelMatlabFeatureExtractorTestNew(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_run_strred_fextractor(self):
 
@@ -205,7 +203,6 @@ class ParallelFeatureExtractorTestNew(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_run_vmaf_fextractor_with_resampling(self):
         ref_path = VmafConfig.test_resource_path("yuv", "src01_hrc00_576x324.yuv")

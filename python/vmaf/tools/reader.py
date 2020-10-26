@@ -146,7 +146,7 @@ class YuvReader(object):
 
     def next(self, format='uint'):
 
-        assert format == 'uint' or format == 'float'
+        assert format in ['uint', 'float']
 
         y_width = self.width
         y_height = self.height

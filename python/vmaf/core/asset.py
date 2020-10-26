@@ -110,10 +110,9 @@ class Asset(WorkdirEnabled):
         dis_path = kwargs['dis_path'] if 'dis_path' in kwargs else self.dis_path
         workdir_root = kwargs['workdir_root'] if 'workdir_root' in kwargs else self.workdir_root
 
-        new_asset = self.__class__(dataset, content_id, asset_id,
+        return self.__class__(dataset, content_id, asset_id,
                                    ref_path, dis_path, new_asset_dict,
                                    workdir_root)
-        return new_asset
 
     @staticmethod
     def from_repr(rp):
@@ -466,9 +465,10 @@ class Asset(WorkdirEnabled):
 
         # if resolutions are consistent, no resampling is taking place, so
         # specificying resampling type should be ignored
-        if self.resampling_type != self.DEFAULT_RESAMPLING_TYPE and \
-                not (self.ref_width_height == self.quality_width_height
-                     and self.dis_width_height == self.quality_width_height):
+        if self.resampling_type != self.DEFAULT_RESAMPLING_TYPE and (
+            self.ref_width_height != self.quality_width_height
+            or self.dis_width_height != self.quality_width_height
+        ):
             if s != "":
                 s += "_"
             s += "{}".format(self.resampling_type)
@@ -501,7 +501,7 @@ class Asset(WorkdirEnabled):
         for key in self.__dict__:
             if key == 'workdir':
                 d[key] = ""
-            elif key == 'ref_path' or key == 'dis_path':
+            elif key in ['ref_path', 'dis_path']:
                 d[key] = get_file_name_with_extension(self.__dict__[key])
             else:
                 d[key] = self.__dict__[key]
@@ -636,9 +636,9 @@ class Asset(WorkdirEnabled):
         this property tries to read workfile_yuv_type from asset_dict, if it is there it is set
         else it default to default_yuv_type
         """
-        supported_yuv_types = list(set(Asset.SUPPORTED_YUV_TYPES) - {'notyuv'})
         if 'workfile_yuv_type' in self.asset_dict:
             workfile_yuv_type = self.asset_dict['workfile_yuv_type']
+            supported_yuv_types = list(set(Asset.SUPPORTED_YUV_TYPES) - {'notyuv'})
             assert workfile_yuv_type in supported_yuv_types, "Workfile YUV format {} is not valid, pick: {}".format(
                 workfile_yuv_type, str(supported_yuv_types))
             return workfile_yuv_type
@@ -691,10 +691,7 @@ class Asset(WorkdirEnabled):
         # cannot just assign True/False for ResultStore reason:
         # df = pd.DataFrame.from_dict(ast.literal_eval(result_file.read()))
         # cannot read true/false
-        if bool_value is True:
-            self.asset_dict['use_path_as_workpath'] = 1
-        else:
-            self.asset_dict['use_path_as_workpath'] = 0
+        self.asset_dict['use_path_as_workpath'] = 1 if bool_value is True else 0
 
     @property
     def use_workpath_as_procpath(self):
@@ -717,10 +714,7 @@ class Asset(WorkdirEnabled):
         # cannot just assign True/False for ResultStore reason:
         # df = pd.DataFrame.from_dict(ast.literal_eval(result_file.read()))
         # cannot read true/false
-        if bool_value is True:
-            self.asset_dict['use_workpath_as_procpath'] = 1
-        else:
-            self.asset_dict['use_workpath_as_procpath'] = 0
+        self.asset_dict['use_workpath_as_procpath'] = 1 if bool_value is True else 0
 
     @property
     def crop_cmd(self):
@@ -756,7 +750,7 @@ class Asset(WorkdirEnabled):
                 return self.asset_dict[cmd]
             else:
                 return None
-        if target == 'ref' or target == 'dis':
+        if target in ['ref', 'dis']:
             cmd = target + '_' + key + '_cmd'
             cmd2 = key + '_cmd'
             if cmd in self.asset_dict:
@@ -865,10 +859,9 @@ class NorefAsset(Asset):
         dis_path = kwargs['dis_path'] if 'dis_path' in kwargs else self.dis_path
         workdir_root = kwargs['workdir_root'] if 'workdir_root' in kwargs else self.workdir_root
 
-        new_asset = self.__class__(dataset, content_id, asset_id,
+        return self.__class__(dataset, content_id, asset_id,
                                    dis_path, new_asset_dict,
                                    workdir_root)
-        return new_asset
 
     def copy_as_asset(self, **kwargs):
         """ similar to Noref.copy, except that the returned object is of

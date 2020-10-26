@@ -15,7 +15,6 @@ class NorefFeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-            pass
 
     def test_noref_moment_fextractor_with_noref_asset_notyuv(self):
 

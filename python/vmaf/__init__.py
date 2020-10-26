@@ -38,8 +38,7 @@ def run_process(cmd, **kwargs):
 
 
 def project_path(relative_path):
-    path = os.path.join(VMAF_PROJECT, relative_path)
-    return path
+    return os.path.join(VMAF_PROJECT, relative_path)
 
 
 def required(path):

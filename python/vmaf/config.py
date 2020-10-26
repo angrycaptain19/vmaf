@@ -48,8 +48,6 @@ class VmafExternalConfig(object):
         except ImportError:
             print('ImportError')
 
-            pass
-
         return None
 
     @classmethod
@@ -189,9 +187,7 @@ class VmafConfig(object):
     @classmethod
     def test_resource_path(cls, *components, bypass_download=False):
         local_path = cls.root_path('python', 'test', 'resource', *components)
-        if bypass_download:
-            pass
-        else:
+        if not bypass_download:
             remote_path = os.path.join(VMAF_RESOURCE_ROOT, 'python', 'test', 'resource', *components)
             download_reactively(local_path, remote_path)
         return local_path

@@ -126,17 +126,26 @@ class BasicResult(object):
 
     def _get_aggregate_score_str(self):
         list_score_key = self.get_ordered_list_score_key()
-        str_aggregate = "Aggregate ({}): ".format(self.score_aggregate_method.__name__) + (", ".join(
-            list(map(
-                lambda tscore: "{score_key}:{score:.6f}".format(score_key=tscore[0], score=tscore[1]),
-                zip(
-                    list_score_key, list(map(
-                        lambda score_key: self[score_key],
-                        list_score_key)
-                ))
-            ))
-        ))
-        return str_aggregate
+        return "Aggregate ({}): ".format(self.score_aggregate_method.__name__) + (
+            ", ".join(
+                list(
+                    map(
+                        lambda tscore: "{score_key}:{score:.6f}".format(
+                            score_key=tscore[0], score=tscore[1]
+                        ),
+                        zip(
+                            list_score_key,
+                            list(
+                                map(
+                                    lambda score_key: self[score_key],
+                                    list_score_key,
+                                )
+                            ),
+                        ),
+                    )
+                )
+            )
+        )
 
 
 class Result(BasicResult):
@@ -166,10 +175,10 @@ class Result(BasicResult):
         if self.executor_id != other.executor_id:
             return False
         list_scores_key = self.get_ordered_list_scores_key()
-        for scores_key in list_scores_key:
-            if self.result_dict[scores_key] != other.result_dict[scores_key]:
-                return False
-        return True
+        return all(
+            self.result_dict[scores_key] == other.result_dict[scores_key]
+            for scores_key in list_scores_key
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -511,10 +520,7 @@ class Result(BasicResult):
 
         executor_id = df.iloc[0]['executor_id']
 
-        result_dict = {}
-        for _, row in df.iterrows():
-            result_dict[row['scores_key']] = row['scores']
-
+        result_dict = {row['scores_key']: row['scores'] for _, row in df.iterrows()}
         return Result(asset, executor_id, result_dict)
 
     @classmethod

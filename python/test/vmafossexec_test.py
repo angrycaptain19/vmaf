@@ -20,7 +20,6 @@ class VmafossexecQualityRunnerTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'runner'):
             self.runner.remove_results()
-            pass
 
     def setUp(self):
         self.result_store = FileSystemResultStore()
@@ -866,7 +865,6 @@ class ParallelQualityRunnerTest(unittest.TestCase):
         if hasattr(self, 'runners'):
             for runner in self.runners:
                 runner.remove_results()
-            pass
 
     def test_run_parallel_vmafossexec_runner_with_repeated_assets(self):
 

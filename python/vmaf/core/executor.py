@@ -175,8 +175,6 @@ class Executor(TypeVersionEnabled):
         for asset in self.assets:
             self._assert_an_asset(asset)
 
-        pass
-
     @staticmethod
     def _need_ffmpeg(asset):
         # 1) if quality width/height do not to agree with ref/dis width/height,
@@ -228,9 +226,9 @@ class Executor(TypeVersionEnabled):
 
         if asset.ref_yuv_type == 'notyuv' and asset.dis_yuv_type == 'notyuv':
             return asset.workfile_yuv_type
-        elif asset.ref_yuv_type == 'notyuv' and asset.dis_yuv_type != 'notyuv':
+        elif asset.ref_yuv_type == 'notyuv':
             return asset.dis_yuv_type
-        elif asset.ref_yuv_type != 'notyuv' and asset.dis_yuv_type == 'notyuv':
+        elif asset.dis_yuv_type == 'notyuv':
             return asset.ref_yuv_type
         else: # neither notyuv
             assert asset.ref_yuv_type == asset.dis_yuv_type, "YUV types for ref and dis do not match."
@@ -238,7 +236,7 @@ class Executor(TypeVersionEnabled):
 
     def _wait_for_workfiles(self, asset):
         # wait til workfile paths being generated
-        for i in range(10):
+        for _ in range(10):
             if os.path.exists(asset.ref_workfile_path) and os.path.exists(asset.dis_workfile_path):
                 break
             sleep(0.1)
@@ -247,7 +245,7 @@ class Executor(TypeVersionEnabled):
 
     def _wait_for_procfiles(self, asset):
         # wait til procfile paths being generated
-        for i in range(10):
+        for _ in range(10):
             if os.path.exists(asset.ref_procfile_path) and os.path.exists(asset.dis_procfile_path):
                 break
             sleep(0.1)
@@ -496,10 +494,11 @@ class Executor(TypeVersionEnabled):
         pad_cmd = self._get_filter_cmd(asset, 'pad', 'ref')
         scale_cmd = 'scale={width}x{height}'.format(width=quality_width, height=quality_height)
 
-        filter_cmds = []
-        for key in Asset.ORDERED_FILTER_LIST:
-            if key is not 'crop' and key is not 'pad':
-                filter_cmds.append(self._get_filter_cmd(asset, key, 'ref'))
+        filter_cmds = [
+            self._get_filter_cmd(asset, key, 'ref')
+            for key in Asset.ORDERED_FILTER_LIST
+            if key is not 'crop' and key is not 'pad'
+        ]
 
         vf_cmd = ','.join(filter(lambda s: s!='', [select_cmd, crop_cmd, pad_cmd, scale_cmd] + filter_cmds))
 
@@ -549,10 +548,11 @@ class Executor(TypeVersionEnabled):
         pad_cmd = self._get_filter_cmd(asset, 'pad', 'dis')
         scale_cmd = 'scale={width}x{height}'.format(width=quality_width, height=quality_height)
 
-        filter_cmds = []
-        for key in Asset.ORDERED_FILTER_LIST:
-            if key is not 'crop' and key is not 'pad':
-                filter_cmds.append(self._get_filter_cmd(asset, key, 'dis'))
+        filter_cmds = [
+            self._get_filter_cmd(asset, key, 'dis')
+            for key in Asset.ORDERED_FILTER_LIST
+            if key is not 'crop' and key is not 'pad'
+        ]
 
         vf_cmd = ','.join(filter(lambda s: s!='', [select_cmd, crop_cmd, pad_cmd, scale_cmd] + filter_cmds))
 
@@ -637,9 +637,8 @@ class Executor(TypeVersionEnabled):
             yuv_type = asset.dis_yuv_type
         else:
             raise AssertionError('Unknown ref_or_dis: {}'.format(ref_or_dis))
-        yuv_src_fmt_cmd = '-f rawvideo -pix_fmt {yuv_fmt} -s {width}x{height}'. \
+        return '-f rawvideo -pix_fmt {yuv_fmt} -s {width}x{height}'. \
             format(yuv_fmt=yuv_type, width=width, height=height)
-        return yuv_src_fmt_cmd
 
     @staticmethod
     def _get_notyuv_src_fmt_cmd(asset, target):
@@ -837,7 +836,7 @@ class NorefExecutorMixin(object):
     @override(Executor)
     def _wait_for_workfiles(self, asset):
         # wait til workfile paths being generated
-        for i in range(10):
+        for _ in range(10):
             if os.path.exists(asset.dis_workfile_path):
                 break
             sleep(0.1)
@@ -848,7 +847,7 @@ class NorefExecutorMixin(object):
     @override(Executor)
     def _wait_for_procfiles(self, asset):
         # wait til procfile paths being generated
-        for i in range(10):
+        for _ in range(10):
             if os.path.exists(asset.dis_procfile_path):
                 break
             sleep(0.1)

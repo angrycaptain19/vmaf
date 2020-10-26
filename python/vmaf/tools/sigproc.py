@@ -105,7 +105,7 @@ def midrank(x):
         a = i
         j = a
         while Z[j-1] == Z[a-1]:
-            j = j + 1
+            j += 1
         b = j - 1
         for k in range(a, b+1):
             T[k-1] = (a + b) / 2
@@ -125,8 +125,7 @@ def calpvalue(aucs, sigma):
     # pvalue = 2 * (1 - normcdf(z, 0, 1));
     l = np.array([[1, -1]])
     z = np.abs(np.diff(aucs)) / np.sqrt(np.dot(np.dot(l, sigma), l.T))
-    pvalue = 2 * (1 - scipy.stats.norm.cdf(z, loc=0, scale=1))
-    return pvalue
+    return 2 * (1 - scipy.stats.norm.cdf(z, loc=0, scale=1))
 
 
 def _cov_kendall(x):
@@ -342,6 +341,4 @@ def significanceBinomial(p1, p2, N):
     p = (p1 + p2) / 2.0
     sigmaP1P2 = np.sqrt(p * (1.0 - p) * 2.0 / N)
     z = abs(p1 - p2) / sigmaP1P2
-    pValue = 2.0 * (1.0 - scipy.stats.norm.cdf(z, 0.0, 1.0))
-
-    return pValue
+    return 2.0 * (1.0 - scipy.stats.norm.cdf(z, 0.0, 1.0))

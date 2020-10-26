@@ -53,8 +53,7 @@ class FileSystemResultStore(ResultStore):
         result_file_path = self._get_result_file_path2(asset, executor_id)
         if not os.path.isfile(result_file_path):
             return None
-        result = self.load_result(result_file_path)
-        return result
+        return self.load_result(result_file_path)
 
     @staticmethod
     def save_result(result, result_file_path):

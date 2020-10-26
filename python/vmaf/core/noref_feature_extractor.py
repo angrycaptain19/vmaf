@@ -32,18 +32,16 @@ class MomentNorefFeatureExtractor(NorefExecutorMixin, FeatureExtractor):
 
         quality_w, quality_h = asset.quality_width_height
         with YuvReader(filepath=asset.dis_procfile_path, width=quality_w,
-                       height=quality_h,
-                       yuv_type=self._get_workfile_yuv_type(asset)) \
-                as dis_yuv_reader:
+                           height=quality_h,
+                           yuv_type=self._get_workfile_yuv_type(asset)) \
+                    as dis_yuv_reader:
             scores_mtx_list = []
-            i = 0
-            for dis_yuv in dis_yuv_reader:
+            for i, dis_yuv in enumerate(dis_yuv_reader):
                 dis_y = dis_yuv[0]
                 dis_y = dis_y.astype(np.double)
                 firstm = dis_y.mean()
                 secondm = dis_y.var() + firstm**2
                 scores_mtx_list.append(np.hstack(([firstm], [secondm])))
-                i += 1
             scores_mtx = np.vstack(scores_mtx_list)
 
         # write scores_mtx to log file
@@ -343,7 +341,7 @@ class NiqeNorefFeatureExtractor(BrisqueNorefFeatureExtractor):
     def mode(self):
         if self.optional_dict and 'mode' in self.optional_dict:
             mode = self.optional_dict['mode']
-            assert mode == 'train' or mode == 'test'
+            assert mode in ['train', 'test']
             return mode
         else:
             return 'test'
@@ -423,14 +421,14 @@ class NiqeNorefFeatureExtractor(BrisqueNorefFeatureExtractor):
 
                 list_features.append(np.hstack((lvl1_features, lvl2_features)))
 
-        if mode == 'train':
+        if mode == 'test':
+            pass
+        elif mode == 'train':
             variancefield = view_as_windows(img_var, (patch_size, patch_size), step=patch_size)
             variancefield = variancefield.reshape(-1, patch_size, patch_size)
             avg_variance = np.mean(np.mean(variancefield, axis=2), axis=1)
             avg_variance /= np.max(avg_variance)
             list_features = list(compress(list_features, avg_variance > cls.DEFAULT_VAR_THRESHOLD))
-        elif mode == 'test':
-            pass
         else:
             assert False
 
@@ -460,25 +458,20 @@ class SiTiNorefFeatureExtractor(NorefExecutorMixin, FeatureExtractor):
         yuv_type = self._get_workfile_yuv_type(asset)
         assert yuv_type in YuvReader.SUPPORTED_YUV_8BIT_TYPES, '{} only work with 8 bit for now.'.format(self.__class__.__name__)
         with YuvReader(filepath=asset.dis_procfile_path, width=quality_w,
-                       height=quality_h,
-                       yuv_type=yuv_type) \
-                as dis_yuv_reader:
+                           height=quality_h,
+                           yuv_type=yuv_type) \
+                    as dis_yuv_reader:
             scores_mtx_list = []
-            i = 0
-            for dis_yuv in dis_yuv_reader:
+            for i, dis_yuv in enumerate(dis_yuv_reader):
                 dis_y = dis_yuv[0].astype('int32')
                 mag = self.sobel_filt(dis_y)
                 si = np.std(mag)
-                if i == 0:
-                    ti = 0
-                else:
-                    ti = np.std(dis_y - dis_y_prev)
+                ti = 0 if i == 0 else np.std(dis_y - dis_y_prev)
                 dis_y_prev = copy.deepcopy(dis_y)
                 scores_mtx_list.append(np.hstack(([si], [ti])))
-                i += 1
             scores_mtx = np.vstack(scores_mtx_list)
 
-            # write scores_mtx to log file
+                # write scores_mtx to log file
         log_file_path = self._get_log_file_path(asset)
         with open(log_file_path, "wb") as log_file:
             np.save(log_file, scores_mtx)

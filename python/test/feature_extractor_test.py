@@ -24,7 +24,6 @@ class FeatureExtractorTest(unittest.TestCase):
     def tearDown(self):
         if hasattr(self, 'fextractor'):
             self.fextractor.remove_results()
-        pass
 
     def test_executor_id(self):
         asset = Asset(dataset="test", content_id=0, asset_id=1,
@@ -633,7 +632,6 @@ class ParallelFeatureExtractorTest(unittest.TestCase):
         if hasattr(self, 'fextractors'):
             for fextractor in self.fextractors:
                 fextractor.remove_results()
-            pass
 
     def test_run_parallel_vmaf_fextractor(self):
 

@@ -262,12 +262,7 @@ def cmd_option_exists(argv, begin, end, option):
     False
 
     '''
-    found = False
-    for itr in range(begin, end):
-        if argv[itr] == option:
-            found = True
-            break
-    return found
+    return any(argv[itr] == option for itr in range(begin, end))
 
 
 def index_and_value_of_min(l):
@@ -399,10 +394,7 @@ def check_scanf_match(string, template):
     except (FormatError, IncompleteCaptureError):
         pass
 
-    if fnmatch(string, template):
-        return True
-
-    return False
+    return bool(fnmatch(string, template))
 
 
 def match_any_files(template):
@@ -427,19 +419,16 @@ def unroll_dict_of_lists(dict_of_lists):
     list_of_key_value_pairs = []
     for key in keys:
         values = dict_of_lists[key]
-        key_value_pairs = []
-        for value in values:
-            key_value_pairs.append((key, value))
+        key_value_pairs = [(key, value) for value in values]
         list_of_key_value_pairs.append(key_value_pairs)
 
     list_of_key_value_pairs_rearranged = \
         itertools.product(*list_of_key_value_pairs)
 
-    list_of_dicts = []
-    for key_value_pairs in list_of_key_value_pairs_rearranged:
-        list_of_dicts.append(dict(key_value_pairs))
-
-    return list_of_dicts
+    return [
+        dict(key_value_pairs)
+        for key_value_pairs in list_of_key_value_pairs_rearranged
+    ]
 
 
 def neg_if_even(x):
@@ -483,16 +472,13 @@ def dedup_value_in_dict(d):
     >>> dedup_value_in_dict({'a': 1, 'b': 1, 'c': 2}) == {'a': 1, 'c': 2}
     True
     """
-    reversed_d = dict()
+    reversed_d = {}
     keys = sorted(d.keys())
     for key in keys:
         value = d[key]
         if value not in reversed_d:
             reversed_d[value] = key
-    d_ = dict()
-    for value, key in reversed_d.items():
-        d_[key] = value
-    return d_
+    return {key: value for value, key in reversed_d.items()}
 
 
 if __name__ == '__main__':

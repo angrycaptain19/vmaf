@@ -129,14 +129,12 @@ class LocalExplainer(object):
             feature_weight = self.model_regressor.coef_.copy()
             feature_weights[i_sample, :] = feature_weight
 
-        exps = {
+        return {
             'feature_weights': feature_weights,
             'features': xs_2d_unnormalized,
             'features_normalized': xs_2d,
             'feature_names': feature_names
         }
-
-        return exps
 
     @staticmethod
     def assert_explanations(exps, assets=None, ys=None, ys_pred=None):
@@ -259,10 +257,9 @@ class LocalExplainer(object):
         N = cls.assert_explanations(exps)
         for index in indexs:
             assert index < N
-        exps2 = {
+        return {
             'feature_weights': exps['feature_weights'][indexs, :],
             'features': exps['features'][indexs, :],
             'features_normalized': exps['features_normalized'][indexs, :],
             'feature_names': exps['feature_names']
         }
-        return exps2
